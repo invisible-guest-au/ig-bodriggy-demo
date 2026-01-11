@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bodriggy - Venue Dashboard</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F5F5F7;
+            --surface: #FFFFFF;
+            --text: #1a1a2e;
+            --muted: #6B6B7B;
+            --border: #E5E5EA;
+            --primary: #5B5DAD;
+            --primaryLight: #7c7fc7;
+            --primaryBg: rgba(91, 93, 173, 0.08);
+            --secondary: #F5D547;
+            --success: #22c55e;
+            --successBg: rgba(34, 197, 94, 0.1);
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            /* Muted Bodriggy colors */
+            --bodGreen: #8CB369;
+            --bodCyan: #5BA3A8;
+            --bodYellow: #D4B95E;
+            --bodOrange: #D08C60;
+            --bodPink: #C490A0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--surface);
+            padding: 0.6rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .frank-logo img { height: 24px; opacity: 0.7; transition: opacity 0.2s; }
+        .frank-logo:hover img { opacity: 1; }
+
+        .header-center { position: absolute; left: 50%; transform: translateX(-50%); }
+        .header-center img { height: 28px; }
+
+        .nav-tabs { display: flex; gap: 0.5rem; }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--muted);
+            font-weight: 500;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .nav-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+        .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+        .page-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1.25rem; color: var(--text); }
+
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            margin-bottom: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+
+        .filters-bar {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.25rem;
+            background: var(--surface);
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            align-items: flex-end;
+        }
+
+        .filter-group { display: flex; flex-direction: column; gap: 0.3rem; }
+
+        .filter-group label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select,
+        .filter-group input[type="date"] {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background: var(--surface);
+            color: var(--text);
+            font-family: inherit;
+            min-width: 130px;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primaryLight); }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover { background: var(--border); }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-group { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--text); }
+
+        .stat-subtitle { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .chart-full { grid-column: 1 / -1; }
+
+        .category-bars { display: flex; flex-direction: column; gap: 0.6rem; }
+
+        .category-row { display: flex; align-items: center; gap: 0.75rem; }
+
+        .category-label { font-size: 0.8rem; color: var(--text); min-width: 85px; }
+
+        .category-bar-bg {
+            flex: 1;
+            height: 22px;
+            background: var(--bg);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .category-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .category-value {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .performers-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+        .performer-row { display: flex; align-items: center; gap: 0.75rem; }
+
+        .performer-name { font-size: 0.8rem; color: var(--text); min-width: 50px; }
+
+        .performer-bar-bg {
+            flex: 1;
+            height: 18px;
+            background: var(--bg);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .performer-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .performer-value {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text);
+            min-width: 30px;
+            text-align: right;
+        }
+
+        .table-container { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        th {
+            padding: 0.6rem 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.7rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.6rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+        }
+
+        tbody tr { cursor: pointer; transition: background 0.15s; }
+        tbody tr:hover { background: var(--primaryBg); }
+        tbody tr:last-child td { border-bottom: none; }
+
+        .rating-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .rating-badge.excellent { background: var(--successBg); color: var(--success); }
+        .rating-badge.good { background: var(--primaryBg); color: var(--primary); }
+        .rating-badge.average { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .rating-badge.poor { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        .contact-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.7rem;
+            background: rgba(208, 140, 96, 0.15);
+            color: var(--bodOrange);
+        }
+
+        .star { color: var(--bodYellow); }
+
+        .empty-state { text-align: center; padding: 2rem; color: var(--muted); }
+        .empty-state-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: 16px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title { font-size: 1rem; font-weight: 600; }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--bg);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+        }
+
+        .modal-close:hover { background: var(--border); }
+
+        .modal-body { padding: 1.25rem; }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-row:last-child { border-bottom: none; }
+
+        .detail-label { font-size: 0.8rem; color: var(--muted); }
+
+        .detail-value { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+
+        .feedback-section {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+
+        .feedback-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .feedback-text {
+            font-size: 0.9rem;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .contact-section {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(208, 140, 96, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(208, 140, 96, 0.2);
+        }
+
+        .contact-title {
+            font-size: 0.75rem;
+            color: var(--bodOrange);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Settings Styles */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .form-group { margin-bottom: 1rem; }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 0.35rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.6rem 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
+
+        .form-group input:focus { outline: none; border-color: var(--primary); }
+
+        .hint { font-size: 0.7rem; color: var(--muted); margin-top: 0.25rem; display: block; }
+
+        .questions-editor { margin-top: 0.75rem; }
+
+        .question-edit-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-edit-row input {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover { background: var(--bg); }
+        .btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        .staff-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .staff-card {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: var(--bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .staff-avatar {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--bodCyan) 0%, var(--bodGreen) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+
+        .staff-name { font-weight: 500; color: var(--text); flex: 1; font-size: 0.85rem; }
+
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text);
+            color: white;
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            z-index: 1000;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 1024px) {
+            .charts-row { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 0.75rem; padding: 0.75rem 1rem; }
+            .header-center { position: static; transform: none; }
+            .main { padding: 1rem; }
+            .filters-bar { flex-direction: column; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const STORAGE_KEYS = { settings: 'bodriggy_settings', responses: 'bodriggy_responses' };
+        const SHIFTS = ['Breakfast', 'Lunch', 'Dinner'];
+
+        const DEFAULT_SETTINGS = {
+            venueName: 'Bodriggy Brewery',
+            googleReviewUrl: 'https://search.google.com/local/writereview?placeid=ChIJWSR2VAND1moR1Ri6HhgyHC8',
+            reviewThreshold: 4,
+            questions: [
+                { key: 'food', label: 'Food' },
+                { key: 'drinks', label: 'Drinks' },
+                { key: 'service', label: 'Service' },
+                { key: 'environment', label: 'Environment' },
+                { key: 'recommend', label: 'Overall' }
+            ],
+            staff: ['Sophie', 'James', 'Emma', 'Oliver', 'Liam', 'Noah']
+        };
+
+        // Muted Bodriggy colors
+        const COLORS = ['#8CB369', '#5BA3A8', '#D4B95E', '#D08C60', '#C490A0'];
+
+        const FEEDBACK_SAMPLES = [
+            "Amazing food and great atmosphere! Will definitely be back.",
+            "The craft beers were excellent. Loved trying the seasonal brews.",
+            "Service was a bit slow but the food made up for it.",
+            "Great spot for a weekend lunch. Kids loved it too!",
+            "The pizza was incredible - best in the area.",
+            "Friendly staff and good vibes. Perfect for after-work drinks.",
+            "Food was tasty but portions could be bigger for the price.",
+            "Excellent selection of local beers. Very knowledgeable bartender.",
+            "Nice outdoor area. Great on a sunny day.",
+            "Really enjoyed the tasting paddle. Good variety of styles.",
+            ""
+        ];
+
+        const CONTACT_NAMES = ['Sarah M.', 'David K.', 'Michelle T.', 'Chris P.', 'Amanda L.', 'Tom R.'];
+
+        const generateMockData = (settings) => {
+            const responses = [];
+            const now = new Date();
+            
+            // Create base ratings for each staff member (for consistency)
+            const staffBaseRatings = {};
+            settings.staff.forEach(name => {
+                staffBaseRatings[name] = 3.2 + Math.random() * 1.3; // Base between 3.2 and 4.5
+            });
+
+            // Generate smoother data by creating daily averages first
+            const dailyTrends = {};
+            for (let d = 0; d < 30; d++) {
+                const date = new Date(now);
+                date.setDate(date.getDate() - d);
+                const dateKey = date.toISOString().split('T')[0];
+                
+                // Smooth trend - slight variations day to day
+                const dayVariation = Math.sin(d * 0.3) * 0.2 + (Math.random() - 0.5) * 0.15;
+                dailyTrends[dateKey] = dayVariation;
+            }
+            
+            for (let i = 0; i < 45; i++) {
+                const daysAgo = Math.floor(Math.random() * 30);
+                const date = new Date(now);
+                date.setDate(date.getDate() - daysAgo);
+                const dateKey = date.toISOString().split('T')[0];
+                date.setHours(Math.floor(Math.random() * 14) + 8);
+                
+                const staffMember = settings.staff[Math.floor(Math.random() * settings.staff.length)];
+                const baseRating = staffBaseRatings[staffMember];
+                const dayTrend = dailyTrends[dateKey] || 0;
+                
+                const ratings = {};
+                let total = 0;
+                settings.questions.forEach((q, idx) => {
+                    // Small variance for each question, influenced by staff base and daily trend
+                    const questionVariance = (Math.random() - 0.5) * 0.4;
+                    const rating = Math.max(2, Math.min(5, Math.round((baseRating + dayTrend + questionVariance) * 2) / 2));
+                    ratings[q.key] = rating;
+                    total += rating;
+                });
+                const avg = total / settings.questions.length;
+
+                // Some responses have contact info (about 25%)
+                const hasContact = Math.random() < 0.25;
+                const contactInfo = hasContact ? {
+                    name: CONTACT_NAMES[Math.floor(Math.random() * CONTACT_NAMES.length)],
+                    email: `guest${Math.floor(Math.random() * 1000)}@email.com`,
+                    phone: `04${Math.floor(Math.random() * 100000000).toString().padStart(8, '0')}`
+                } : null;
+
+                responses.push({
+                    id: `mock-${i}`,
+                    createdAt: date.toISOString(),
+                    staffMember,
+                    shift: SHIFTS[Math.floor(Math.random() * SHIFTS.length)],
+                    ratings,
+                    averageRating: avg,
+                    feedbackText: Math.random() > 0.4 ? FEEDBACK_SAMPLES[Math.floor(Math.random() * FEEDBACK_SAMPLES.length)] : '',
+                    reviewEligible: avg >= settings.reviewThreshold,
+                    contact: contactInfo
+                });
+            }
+
+            return responses.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        };
+
+        const loadSettings = () => {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEYS.settings);
+                return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+            } catch { return DEFAULT_SETTINGS; }
+        };
+
+        const saveSettings = (settings) => localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
+        const loadResponses = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.responses) || 'null'); } catch { return null; } };
+        const saveResponses = (responses) => localStorage.setItem(STORAGE_KEYS.responses, JSON.stringify(responses));
+
+        function ResponseModal({ response, settings, onClose }) {
+            if (!response) return null;
+
+            const badgeClass = response.averageRating >= 4.0 ? 'excellent' : response.averageRating >= 3.5 ? 'good' : response.averageRating >= 3.0 ? 'average' : 'poor';
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <span className="modal-title">Response Details</span>
+                            <button className="modal-close" onClick={onClose}>×</button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="detail-row">
+                                <span className="detail-label">Date</span>
+                                <span className="detail-value">{new Date(response.createdAt).toLocaleString()}</span>
+                            </div>
+                            <div className="detail-row">
+                                <span className="detail-label">Staff Member</span>
+                                <span className="detail-value">{response.staffMember}</span>
+                            </div>
+                            <div className="detail-row">
+                                <span className="detail-label">Shift</span>
+                                <span className="detail-value">{response.shift}</span>
+                            </div>
+                            <div className="detail-row">
+                                <span className="detail-label">Average Rating</span>
+                                <span className={`rating-badge ${badgeClass}`}>{response.averageRating.toFixed(1)} <span className="star">★</span></span>
+                            </div>
+                            
+                            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+                                <div className="feedback-label">Ratings Breakdown</div>
+                                {settings.questions.map(q => (
+                                    <div key={q.key} className="detail-row">
+                                        <span className="detail-label">{q.label}</span>
+                                        <span className="detail-value">{response.ratings[q.key]?.toFixed(1) || '—'} <span className="star">★</span></span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {response.feedbackText && (
+                                <div className="feedback-section">
+                                    <div className="feedback-label">Feedback</div>
+                                    <div className="feedback-text">{response.feedbackText}</div>
+                                </div>
+                            )}
+
+                            {response.contact && (
+                                <div className="contact-section">
+                                    <div className="contact-title">📞 Contact Requested</div>
+                                    <div className="detail-row" style={{ padding: '0.4rem 0' }}>
+                                        <span className="detail-label">Name</span>
+                                        <span className="detail-value">{response.contact.name}</span>
+                                    </div>
+                                    <div className="detail-row" style={{ padding: '0.4rem 0' }}>
+                                        <span className="detail-label">Email</span>
+                                        <span className="detail-value">{response.contact.email}</span>
+                                    </div>
+                                    <div className="detail-row" style={{ padding: '0.4rem 0', border: 'none' }}>
+                                        <span className="detail-label">Phone</span>
+                                        <span className="detail-value">{response.contact.phone}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="detail-row" style={{ marginTop: '1rem' }}>
+                                <span className="detail-label">Review Eligible</span>
+                                <span className="detail-value">{response.reviewEligible ? '✓ Yes' : '— No'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [settings, setSettings] = useState(loadSettings);
+            const [responses, setResponses] = useState([]);
+            const [filterStaff, setFilterStaff] = useState('all');
+            const [filterShift, setFilterShift] = useState('all');
+            const [filterDateFrom, setFilterDateFrom] = useState('');
+            const [filterDateTo, setFilterDateTo] = useState('');
+            const [toast, setToast] = useState('');
+            const [selectedResponse, setSelectedResponse] = useState(null);
+            const chartsRef = useRef({});
+
+            useEffect(() => {
+                let data = loadResponses();
+                if (!data || data.length === 0) {
+                    data = generateMockData(settings);
+                    saveResponses(data);
+                }
+                setResponses(data);
+
+                const now = new Date();
+                const thirtyDaysAgo = new Date(now);
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                setFilterDateTo(now.toISOString().split('T')[0]);
+                setFilterDateFrom(thirtyDaysAgo.toISOString().split('T')[0]);
+            }, []);
+
+            useEffect(() => {
+                if (activeTab === 'dashboard') setTimeout(updateCharts, 100);
+            }, [responses, activeTab, filterStaff, filterShift, filterDateFrom, filterDateTo]);
+
+            const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+
+            const getFilteredResponses = () => {
+                return responses.filter(r => {
+                    const date = new Date(r.createdAt);
+                    return (filterStaff === 'all' || r.staffMember === filterStaff) &&
+                           (filterShift === 'all' || r.shift === filterShift) &&
+                           (!filterDateFrom || date >= new Date(filterDateFrom)) &&
+                           (!filterDateTo || date <= new Date(filterDateTo + 'T23:59:59'));
+                });
+            };
+
+            const filteredResponses = getFilteredResponses();
+
+            const calculateStats = (data) => {
+                if (data.length === 0) return { total: 0, average: 0, googleReviews: 0, avgPerStaff: 0, questionAverages: {} };
+                const total = data.length;
+                const avgSum = data.reduce((acc, r) => acc + r.averageRating, 0);
+                const reviewEligible = data.filter(r => r.reviewEligible).length;
+                const uniqueStaff = new Set(data.map(r => r.staffMember)).size;
+                
+                const questionAverages = {};
+                settings.questions.forEach(q => {
+                    const values = data.filter(r => r.ratings[q.key]).map(r => r.ratings[q.key]);
+                    questionAverages[q.key] = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+                });
+
+                return {
+                    total,
+                    average: avgSum / total,
+                    googleReviews: Math.floor(reviewEligible * 0.57),
+                    avgPerStaff: (total / uniqueStaff).toFixed(1),
+                    staffCount: uniqueStaff,
+                    questionAverages
+                };
+            };
+
+            const calculateStaffStats = (data) => {
+                const staffMap = new Map();
+                data.forEach(r => {
+                    if (!staffMap.has(r.staffMember)) {
+                        staffMap.set(r.staffMember, { name: r.staffMember, ratings: {}, count: 0 });
+                        settings.questions.forEach(q => staffMap.get(r.staffMember).ratings[q.key] = []);
+                    }
+                    const staff = staffMap.get(r.staffMember);
+                    settings.questions.forEach(q => { if (r.ratings[q.key]) staff.ratings[q.key].push(r.ratings[q.key]); });
+                    staff.count++;
+                });
+
+                return Array.from(staffMap.values()).map(staff => {
+                    const avgs = {};
+                    let total = 0;
+                    settings.questions.forEach(q => {
+                        avgs[q.key] = staff.ratings[q.key].length > 0 ? staff.ratings[q.key].reduce((a, b) => a + b, 0) / staff.ratings[q.key].length : 0;
+                        total += avgs[q.key];
+                    });
+                    return { name: staff.name, ...avgs, overall: total / settings.questions.length, responses: staff.count };
+                }).sort((a, b) => b.overall - a.overall);
+            };
+
+            const stats = calculateStats(filteredResponses);
+            const staffStats = calculateStaffStats(filteredResponses);
+            const topPerformers = staffStats.slice(0, 6);
+
+            const updateCharts = () => {
+                // Trends Chart - smoother data with daily averages
+                const trendsCtx = document.getElementById('trendsChart');
+                if (trendsCtx) {
+                    if (chartsRef.current.trends) chartsRef.current.trends.destroy();
+                    
+                    // Group by date and calculate daily averages
+                    const dateMap = new Map();
+                    filteredResponses.forEach(r => {
+                        const dateKey = new Date(r.createdAt).toISOString().split('T')[0];
+                        if (!dateMap.has(dateKey)) {
+                            dateMap.set(dateKey, {});
+                            settings.questions.forEach(q => dateMap.get(dateKey)[q.key] = []);
+                        }
+                        settings.questions.forEach(q => { if (r.ratings[q.key]) dateMap.get(dateKey)[q.key].push(r.ratings[q.key]); });
+                    });
+
+                    const sortedDates = Array.from(dateMap.keys()).sort().slice(-30);
+                    const labels = sortedDates.map(d => { const dt = new Date(d); return `${dt.getDate()}`; });
+                    
+                    const datasets = settings.questions.slice(0, 4).map((q, i) => ({
+                        label: q.label,
+                        data: sortedDates.map(date => {
+                            const vals = dateMap.get(date)[q.key];
+                            return vals.length > 0 ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2) : null;
+                        }),
+                        borderColor: COLORS[i],
+                        backgroundColor: COLORS[i] + '20',
+                        tension: 0.4,
+                        fill: i === 0,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        spanGaps: true
+                    }));
+
+                    chartsRef.current.trends = new Chart(trendsCtx, {
+                        type: 'line',
+                        data: { labels, datasets },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { intersect: false, mode: 'index' },
+                            plugins: { legend: { display: true, position: 'top', align: 'end', labels: { usePointStyle: true, padding: 15, font: { size: 10 } } } },
+                            scales: {
+                                y: { beginAtZero: false, min: 1, max: 5, grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 } } },
+                                x: { grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 15 } }
+                            }
+                        }
+                    });
+                }
+
+                // Distribution Chart
+                const distCtx = document.getElementById('distributionChart');
+                if (distCtx) {
+                    if (chartsRef.current.distribution) chartsRef.current.distribution.destroy();
+                    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+                    filteredResponses.forEach(r => { const rounded = Math.round(r.averageRating); if (distribution[rounded] !== undefined) distribution[rounded]++; });
+                    
+                    chartsRef.current.distribution = new Chart(distCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'],
+                            datasets: [{ data: [distribution[5], distribution[4], distribution[3], distribution[2], distribution[1]], backgroundColor: COLORS, borderWidth: 0 }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'right', labels: { padding: 10, usePointStyle: true, font: { size: 10 } } } } }
+                    });
+                }
+
+                // Shift Chart
+                const shiftCtx = document.getElementById('shiftChart');
+                if (shiftCtx) {
+                    if (chartsRef.current.shift) chartsRef.current.shift.destroy();
+                    const shiftCounts = { Breakfast: 0, Lunch: 0, Dinner: 0 };
+                    filteredResponses.forEach(r => { if (shiftCounts[r.shift] !== undefined) shiftCounts[r.shift]++; });
+                    
+                    chartsRef.current.shift = new Chart(shiftCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Morning', 'Afternoon', 'Evening'],
+                            datasets: [{ data: [shiftCounts.Breakfast, shiftCounts.Lunch, shiftCounts.Dinner], backgroundColor: [COLORS[3], COLORS[1], COLORS[0]], borderRadius: 4, barThickness: 40 }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { font: { size: 10 } } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+                        }
+                    });
+                }
+            };
+
+            const handleExportCSV = () => {
+                const headers = ['Date', 'Staff', 'Shift', 'Average', ...settings.questions.map(q => q.label), 'Feedback', 'Review Eligible', 'Contact Name', 'Contact Email', 'Contact Phone'];
+                const rows = filteredResponses.map(r => [
+                    new Date(r.createdAt).toLocaleString(),
+                    r.staffMember || '',
+                    r.shift || '',
+                    r.averageRating.toFixed(2),
+                    ...settings.questions.map(q => r.ratings[q.key]?.toFixed(1) || ''),
+                    `"${(r.feedbackText || '').replace(/"/g, '""')}"`,
+                    r.reviewEligible ? 'Yes' : 'No',
+                    r.contact?.name || '',
+                    r.contact?.email || '',
+                    r.contact?.phone || ''
+                ]);
+                const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `bodriggy-feedback-${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('CSV exported!');
+            };
+
+            const handleResetData = () => {
+                if (window.confirm('Reset to demo data?')) {
+                    const newResponses = generateMockData(settings);
+                    saveResponses(newResponses);
+                    setResponses(newResponses);
+                    showToast('Demo data reset!');
+                }
+            };
+
+            const handleClearData = () => {
+                if (window.confirm('Clear ALL data?')) {
+                    saveResponses([]);
+                    setResponses([]);
+                    showToast('All data cleared!');
+                }
+            };
+
+            const handleSaveSettings = () => { saveSettings(settings); showToast('Settings saved!'); };
+
+            const handleAddQuestion = () => setSettings({ ...settings, questions: [...settings.questions, { key: `q${Date.now()}`, label: 'New Question' }] });
+            const handleRemoveQuestion = (index) => { if (settings.questions.length <= 1) return; const updated = [...settings.questions]; updated.splice(index, 1); setSettings({ ...settings, questions: updated }); };
+            const handleQuestionChange = (index, value) => { const updated = [...settings.questions]; updated[index] = { ...updated[index], label: value }; setSettings({ ...settings, questions: updated }); };
+            const handleAddStaff = () => { const name = prompt('Enter staff name:'); if (name?.trim()) setSettings({ ...settings, staff: [...settings.staff, name.trim()] }); };
+            const handleRemoveStaff = (index) => { const updated = [...settings.staff]; updated.splice(index, 1); setSettings({ ...settings, staff: updated }); };
+
+            const uniqueStaffInData = [...new Set(responses.map(r => r.staffMember))];
+
+            return (
+                <div>
+                    <header className="header">
+                        <div className="header-left">
+                            <a href="https://invisibleguest.com.au" target="_blank" rel="noopener" className="frank-logo">
+                                <img src="./assets/Frank_Custom.png" alt="Frank" />
+                            </a>
+                        </div>
+                        <div className="header-center">
+                            <img
+                              src="./assets/Bodriggy.png"
+                              alt={settings.venueName}
+                              style={{ height: 70, width: "auto" }}
+                            />
+                        </div>
+                        <nav className="nav-tabs">
+                            <button className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>Dashboard</button>
+                            <button className={`nav-btn ${activeTab === 'responses' ? 'active' : ''}`} onClick={() => setActiveTab('responses')}>Responses</button>
+                            <button className={`nav-btn ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>Settings</button>
+                        </nav>
+                    </header>
+
+                    <main className="main">
+                        {/* Dashboard Tab */}
+                        {activeTab === 'dashboard' && (
+                            <>
+                                <div className="filters-bar">
+                                    <div className="filter-group">
+                                        <label>Staff</label>
+                                        <select value={filterStaff} onChange={(e) => setFilterStaff(e.target.value)}>
+                                            <option value="all">All Staff</option>
+                                            {uniqueStaffInData.map(s => <option key={s} value={s}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="filter-group">
+                                        <label>Date From</label>
+                                        <input type="date" value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)} />
+                                    </div>
+                                    <div className="filter-group">
+                                        <label>Date To</label>
+                                        <input type="date" value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)} />
+                                    </div>
+                                    <div className="filter-group">
+                                        <label>Shift</label>
+                                        <select value={filterShift} onChange={(e) => setFilterShift(e.target.value)}>
+                                            <option value="all">All Shifts</option>
+                                            {SHIFTS.map(s => <option key={s} value={s}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                    <button className="btn btn-primary" onClick={() => {}}>Apply Filters</button>
+                                </div>
+
+                                <div className="stats-grid">
+                                    <div className="stat-card">
+                                        <div className="stat-label">Team Average Rating</div>
+                                        <div className="stat-value">{stats.average.toFixed(2)}</div>
+                                        <div className="stat-subtitle">Based on {stats.total} responses</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-label">Total Responses</div>
+                                        <div className="stat-value">{stats.total}</div>
+                                        <div className="stat-subtitle">For selected period</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-label">Google Reviews Generated</div>
+                                        <div className="stat-value">{stats.googleReviews}</div>
+                                        <div className="stat-subtitle">57% conversion rate</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <div className="stat-label">Avg Responses per Staff</div>
+                                        <div className="stat-value">{stats.avgPerStaff}</div>
+                                        <div className="stat-subtitle">{stats.staffCount} active staff</div>
+                                    </div>
+                                </div>
+
+                                <div className="charts-row">
+                                    <div className="card">
+                                        <div className="card-title">Average Ratings by Category</div>
+                                        <div className="category-bars">
+                                            {settings.questions.map((q, i) => (
+                                                <div key={q.key} className="category-row">
+                                                    <span className="category-label">{q.label}</span>
+                                                    <div className="category-bar-bg">
+                                                        <div className="category-bar" style={{ width: `${((stats.questionAverages[q.key] || 0) / 5) * 100}%`, backgroundColor: COLORS[i % 5] }} />
+                                                        <span className="category-value">{(stats.questionAverages[q.key] || 0).toFixed(1)}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="card">
+                                        <div className="card-title">Top Performers</div>
+                                        <div className="performers-list">
+                                            {topPerformers.map((p, i) => (
+                                                <div key={p.name} className="performer-row">
+                                                    <span className="performer-name">{p.name}</span>
+                                                    <div className="performer-bar-bg">
+                                                        <div className="performer-bar" style={{ width: `${(p.overall / 5) * 100}%`, backgroundColor: COLORS[i % 5] }} />
+                                                    </div>
+                                                    <span className="performer-value">{p.overall.toFixed(2)}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="card" style={{ marginBottom: '1.25rem' }}>
+                                    <div className="card-title">Rating Trends (Last 30 Days)</div>
+                                    <div style={{ height: '220px' }}>
+                                        <canvas id="trendsChart"></canvas>
+                                    </div>
+                                </div>
+
+                                <div className="charts-row">
+                                    <div className="card">
+                                        <div className="card-title">Ratings Distribution</div>
+                                        <div style={{ height: '180px' }}>
+                                            <canvas id="distributionChart"></canvas>
+                                        </div>
+                                    </div>
+                                    <div className="card">
+                                        <div className="card-title">Response Rate by Shift</div>
+                                        <div style={{ height: '180px' }}>
+                                            <canvas id="shiftChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="card">
+                                    <div className="card-title">Staff Performance Details</div>
+                                    <div className="table-container">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    {settings.questions.map(q => <th key={q.key}>{q.label}</th>)}
+                                                    <th>Responses</th>
+                                                    <th>Overall</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {staffStats.map(staff => {
+                                                    const badgeClass = staff.overall >= 4.0 ? 'excellent' : staff.overall >= 3.5 ? 'good' : staff.overall >= 3.0 ? 'average' : 'poor';
+                                                    return (
+                                                        <tr key={staff.name} style={{ cursor: 'default' }}>
+                                                            <td style={{ fontWeight: 500 }}>{staff.name}</td>
+                                                            {settings.questions.map(q => (
+                                                                <td key={q.key}>{staff[q.key]?.toFixed(1) || '—'} <span className="star">★</span></td>
+                                                            ))}
+                                                            <td>{staff.responses}</td>
+                                                            <td><span className={`rating-badge ${badgeClass}`}>{staff.overall.toFixed(2)} <span className="star">★</span></span></td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {/* Responses Tab */}
+                        {activeTab === 'responses' && (
+                            <>
+                                <h1 className="page-title">Responses</h1>
+                                <div className="filters-bar">
+                                    <div className="filter-group">
+                                        <label>Staff</label>
+                                        <select value={filterStaff} onChange={(e) => setFilterStaff(e.target.value)}>
+                                            <option value="all">All Staff</option>
+                                            {uniqueStaffInData.map(s => <option key={s} value={s}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="filter-group">
+                                        <label>Date From</label>
+                                        <input type="date" value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)} />
+                                    </div>
+                                    <div className="filter-group">
+                                        <label>Date To</label>
+                                        <input type="date" value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)} />
+                                    </div>
+                                    <div className="filter-group">
+                                        <label>Shift</label>
+                                        <select value={filterShift} onChange={(e) => setFilterShift(e.target.value)}>
+                                            <option value="all">All Shifts</option>
+                                            {SHIFTS.map(s => <option key={s} value={s}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                    <button className="btn btn-secondary" onClick={handleExportCSV}>Export CSV</button>
+                                </div>
+
+                                <div className="card">
+                                    <div className="card-title">{filteredResponses.length} Responses</div>
+                                    <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '1rem' }}>Click on a response to view full details</p>
+                                    {filteredResponses.length === 0 ? (
+                                        <div className="empty-state">
+                                            <div className="empty-state-icon">📭</div>
+                                            <p>No responses found.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="table-container">
+                                            <table>
+                                                <thead>
+                                                    <tr>
+                                                        <th>Date</th>
+                                                        <th>Staff</th>
+                                                        <th>Shift</th>
+                                                        <th>Avg</th>
+                                                        {settings.questions.slice(0, 4).map(q => <th key={q.key}>{q.label}</th>)}
+                                                        <th>Feedback</th>
+                                                        <th>Contact</th>
+                                                        <th>Review</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {filteredResponses.slice(0, 50).map(r => {
+                                                        const badgeClass = r.averageRating >= 4.0 ? 'excellent' : r.averageRating >= 3.5 ? 'good' : r.averageRating >= 3.0 ? 'average' : 'poor';
+                                                        return (
+                                                            <tr key={r.id} onClick={() => setSelectedResponse(r)}>
+                                                                <td>{new Date(r.createdAt).toLocaleDateString()}</td>
+                                                                <td>{r.staffMember}</td>
+                                                                <td>{r.shift}</td>
+                                                                <td><span className={`rating-badge ${badgeClass}`}>{r.averageRating.toFixed(1)}</span></td>
+                                                                {settings.questions.slice(0, 4).map(q => <td key={q.key}>{r.ratings[q.key]?.toFixed(1) || '—'}</td>)}
+                                                                <td style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.feedbackText || '—'}</td>
+                                                                <td>{r.contact ? <span className="contact-badge">📞 Yes</span> : '—'}</td>
+                                                                <td>{r.reviewEligible ? '✓' : '—'}</td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+
+                        {/* Settings Tab */}
+                        {activeTab === 'settings' && (
+                            <>
+                                <h1 className="page-title">Settings</h1>
+                                <div className="card">
+                                    <div className="card-title">Venue Settings</div>
+                                    <div className="settings-grid">
+                                        <div className="form-group">
+                                            <label>Venue Name</label>
+                                            <input type="text" value={settings.venueName} onChange={(e) => setSettings({ ...settings, venueName: e.target.value })} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Google Review URL</label>
+                                            <input type="text" value={settings.googleReviewUrl} onChange={(e) => setSettings({ ...settings, googleReviewUrl: e.target.value })} />
+                                            <span className="hint">Direct write-review link from Google Business Profile</span>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Review Threshold (stars)</label>
+                                            <input type="number" min="1" max="5" step="0.5" value={settings.reviewThreshold} onChange={(e) => setSettings({ ...settings, reviewThreshold: parseFloat(e.target.value) })} />
+                                            <span className="hint">Guests at or above this rating will be prompted for a Google review</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="card">
+                                    <div className="card-title">Rating Questions</div>
+                                    <div className="questions-editor">
+                                        {settings.questions.map((q, index) => (
+                                            <div key={q.key} className="question-edit-row">
+                                                <input type="text" value={q.label} onChange={(e) => handleQuestionChange(index, e.target.value)} />
+                                                <button className="btn-icon danger" onClick={() => handleRemoveQuestion(index)}>×</button>
+                                            </div>
+                                        ))}
+                                        <button className="btn btn-secondary" onClick={handleAddQuestion} style={{ marginTop: '0.5rem' }}>+ Add Question</button>
+                                    </div>
+                                </div>
+
+                                <div className="card">
+                                    <div className="card-title">Staff Members</div>
+                                    <div className="staff-list">
+                                        {settings.staff.map((name, index) => (
+                                            <div key={index} className="staff-card">
+                                                <div className="staff-avatar">{name.split(' ').map(n => n[0]).join('')}</div>
+                                                <span className="staff-name">{name}</span>
+                                                <button className="btn-icon danger" onClick={() => handleRemoveStaff(index)}>×</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button className="btn btn-secondary" onClick={handleAddStaff} style={{ marginTop: '0.75rem' }}>+ Add Staff</button>
+                                </div>
+
+                                <div className="card">
+                                    <div className="card-title">Data Management</div>
+                                    <div className="btn-group">
+                                        <button className="btn btn-secondary" onClick={handleResetData}>Reset Demo Data</button>
+                                        <button className="btn btn-danger" onClick={handleClearData}>Clear All Data</button>
+                                    </div>
+                                    <p style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
+                                        "Reset Demo Data" generates sample responses. "Clear All Data" removes everything.
+                                    </p>
+                                </div>
+
+                                <div style={{ marginTop: '1.25rem' }}>
+                                    <button className="btn btn-primary" onClick={handleSaveSettings}>Save Settings</button>
+                                </div>
+                            </>
+                        )}
+                    </main>
+
+                    {toast && <div className="toast">{toast}</div>}
+                    {selectedResponse && <ResponseModal response={selectedResponse} settings={settings} onClose={() => setSelectedResponse(null)} />}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

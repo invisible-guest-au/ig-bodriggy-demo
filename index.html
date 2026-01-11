@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bodriggy - Guest Feedback</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F8F7F5;
+            --surface: #FFFFFF;
+            --text: #1a1a2e;
+            --muted: #6B6B7B;
+            --border: #E5E5EA;
+            --primary: #5B5DAD;
+            --primaryHover: #4a4c96;
+            --secondary: #F5D547;
+            --secondaryHover: #e6c73d;
+            --success: #4ade80;
+            --star: #F5D547;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .star-rating { display: flex; gap: 0.35rem; font-size: 1.75rem; }
+
+        @media (min-width: 640px) {
+            .star-rating { gap: 0.5rem; font-size: 2.25rem; }
+        }
+
+        .star {
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--border);
+            flex-shrink: 0;
+        }
+
+        .star.filled { color: var(--star); }
+        .star:hover { transform: scale(1.15); }
+
+        .welcome-bg {
+            background: linear-gradient(135deg, rgba(91, 93, 173, 0.08) 0%, rgba(124, 127, 199, 0.05) 100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #5B5DAD 0%, #7c7fc7 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(91, 93, 173, 0.3);
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(91, 93, 173, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--text);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(245, 213, 71, 0.3);
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondaryHover);
+            transform: translateY(-2px);
+        }
+
+        .btn-ghost {
+            background: var(--bg);
+            color: var(--muted);
+            border: 1px solid var(--border);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .btn-ghost:hover { background: var(--border); }
+
+        .card {
+            background: var(--surface);
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+        }
+
+        .input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: var(--surface);
+            font-family: inherit;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(91, 93, 173, 0.1);
+        }
+
+        .textarea { resize: none; min-height: 120px; }
+
+        .label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .rating-box {
+            background: linear-gradient(135deg, rgba(91, 93, 173, 0.08) 0%, rgba(124, 127, 199, 0.05) 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(91, 93, 173, 0.1);
+        }
+
+        .server-badge {
+            background: linear-gradient(135deg, rgba(245, 213, 71, 0.15) 0%, rgba(245, 213, 71, 0.08) 100%);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid rgba(245, 213, 71, 0.25);
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #5B5DAD 0%, #7c7fc7 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const STORAGE_KEYS = { settings: 'bodriggy_settings', responses: 'bodriggy_responses' };
+
+        const DEFAULT_SETTINGS = {
+            venueName: 'Bodriggy Brewery',
+            googleReviewUrl: 'https://search.google.com/local/writereview?placeid=ChIJWSR2VAND1moR1Ri6HhgyHC8',
+            reviewThreshold: 4,
+            questions: [
+                { key: 'food', label: 'Food' },
+                { key: 'drinks', label: 'Drinks' },
+                { key: 'service', label: 'Service' },
+                { key: 'environment', label: 'Environment' },
+                { key: 'recommend', label: 'Likelihood to Recommend' }
+            ],
+            staff: ['Alex Thompson', 'Sam Chen', 'Jordan Lee', 'Morgan Smith', 'Taylor Brown', 'Casey Wilson']
+        };
+
+        const loadSettings = () => {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEYS.settings);
+                return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+            } catch { return DEFAULT_SETTINGS; }
+        };
+
+        const saveResponse = (response) => {
+            try {
+                const existing = JSON.parse(localStorage.getItem(STORAGE_KEYS.responses) || '[]');
+                existing.push(response);
+                localStorage.setItem(STORAGE_KEYS.responses, JSON.stringify(existing));
+            } catch (e) { console.error('Failed to save response:', e); }
+        };
+
+        function StarRating({ rating, onRatingChange, label, stacked = false }) {
+            const [hoverRating, setHoverRating] = useState(0);
+
+            if (stacked) {
+                return (
+                    <div style={{ marginBottom: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 0.5rem' }}>
+                        <label className="label" style={{ textAlign: 'center', marginBottom: '0.75rem' }}>{label}</label>
+                        <div className="star-rating">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <span key={star} className={`star ${star <= (hoverRating || rating) ? 'filled' : ''}`}
+                                    onClick={() => onRatingChange(star)}
+                                    onMouseEnter={() => setHoverRating(star)}
+                                    onMouseLeave={() => setHoverRating(0)}>★</span>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', padding: '0 0.5rem' }}>
+                    <label className="label" style={{ margin: 0, minWidth: '90px', flexShrink: 0 }}>{label}</label>
+                    <div className="star-rating" style={{ flexShrink: 0 }}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <span key={star} className={`star ${star <= (hoverRating || rating) ? 'filled' : ''}`}
+                                onClick={() => onRatingChange(star)}
+                                onMouseEnter={() => setHoverRating(star)}
+                                onMouseLeave={() => setHoverRating(0)}>★</span>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function App() {
+            const [settings] = useState(loadSettings);
+            const [currentView, setCurrentView] = useState('landing');
+            const [staffMember, setStaffMember] = useState('Jordan');
+            const [shift, setShift] = useState('');
+            const [ratings, setRatings] = useState({});
+            const [feedback, setFeedback] = useState('');
+            const [averageRating, setAverageRating] = useState(0);
+            const [contactName, setContactName] = useState('');
+            const [contactPhone, setContactPhone] = useState('');
+            const [contactEmail, setContactEmail] = useState('');
+            const [contactSubmitted, setContactSubmitted] = useState(false);
+
+            useEffect(() => {
+                const initialRatings = {};
+                settings.questions.forEach(q => { initialRatings[q.key] = 0; });
+                setRatings(initialRatings);
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const staffParam = urlParams.get('staff');
+                if (staffParam) setStaffMember(staffParam);
+
+                const hour = new Date().getHours();
+                if (hour < 11) setShift('Breakfast');
+                else if (hour < 15) setShift('Lunch');
+                else setShift('Dinner');
+            }, [settings]);
+
+            const handleRatingChange = (key, value) => setRatings(prev => ({ ...prev, [key]: value }));
+
+            const calculateAverage = () => {
+                const values = Object.values(ratings);
+                return values.reduce((acc, val) => acc + val, 0) / values.length;
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const allRated = Object.values(ratings).every(rating => rating > 0);
+                if (!allRated) { alert('Please rate all categories before submitting.'); return; }
+                const avg = calculateAverage();
+                setAverageRating(avg);
+
+                const response = {
+                    id: Date.now().toString(),
+                    createdAt: new Date().toISOString(),
+                    staffMember: staffMember || 'Unknown',
+                    shift,
+                    ratings,
+                    averageRating: avg,
+                    feedbackText: feedback,
+                    reviewEligible: avg >= settings.reviewThreshold,
+                    contact: null
+                };
+                saveResponse(response);
+                setCurrentView(avg >= settings.reviewThreshold ? 'googlePrompt' : 'thankYou');
+            };
+
+            const handleGoogleReview = (accepted) => {
+                if (accepted) {
+                    if (feedback) navigator.clipboard.writeText(feedback);
+                    window.open(settings.googleReviewUrl, '_blank');
+                }
+                setCurrentView('thankYou');
+            };
+
+            const handleContactSubmit = (e) => {
+                e.preventDefault();
+                try {
+                    const responses = JSON.parse(localStorage.getItem(STORAGE_KEYS.responses) || '[]');
+                    if (responses.length > 0) {
+                        responses[responses.length - 1].contact = { name: contactName, email: contactEmail, phone: contactPhone };
+                        localStorage.setItem(STORAGE_KEYS.responses, JSON.stringify(responses));
+                    }
+                } catch (e) { console.error('Failed to save contact:', e); }
+                setContactSubmitted(true);
+            };
+
+            const resetForm = () => {
+                setCurrentView('landing');
+                const initialRatings = {};
+                settings.questions.forEach(q => { initialRatings[q.key] = 0; });
+                setRatings(initialRatings);
+                setFeedback('');
+                setAverageRating(0);
+                setContactName('');
+                setContactPhone('');
+                setContactEmail('');
+                setContactSubmitted(false);
+            };
+
+            // Landing page
+            if (currentView === 'landing') {
+                return (
+                    <div className="welcome-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                        <div className="card" style={{ maxWidth: '420px', width: '100%', textAlign: 'center' }}>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <img src="./assets/Bodriggy.png" alt="Bodriggy" style={{ height: '70px', width: 'auto' }} />
+                            </div>
+                            <h1 style={{ fontSize: '1.75rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--text)' }}>Welcome!</h1>
+                            <p style={{ color: 'var(--muted)', marginBottom: '1.5rem' }}>We'd love to hear about your experience</p>
+
+                            <div className="server-badge" style={{ marginBottom: '1.5rem' }}>
+                                <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Server</p>
+                                <p style={{ fontSize: '1.35rem', fontWeight: '600', color: 'var(--text)', marginBottom: '0.25rem' }}>{staffMember}</p>
+                                <p style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>{settings.venueName}</p>
+                            </div>
+
+                            <button className="btn-primary" onClick={() => setCurrentView('form')}>Share Your Feedback</button>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '1.5rem' }}>Takes less than 60 seconds</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Feedback form
+            if (currentView === 'form') {
+                return (
+                    <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: '1.5rem 1rem' }}>
+                        <div style={{ maxWidth: '560px', margin: '0 auto' }}>
+                            <div className="card">
+                                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                                    <img src="./assets/Bodriggy.png" alt="Bodriggy" style={{ height: '60px', width: 'auto', marginBottom: '1rem' }} />
+                                    <h2 style={{ fontSize: '1.35rem', fontWeight: '600', color: 'var(--text)', marginBottom: '0.5rem' }}>
+                                        Thanks for visiting {settings.venueName}
+                                    </h2>
+                                    <p style={{ color: 'var(--muted)', fontSize: '0.95rem' }}>
+                                        Served by: <span style={{ color: 'var(--primary)', fontWeight: '500' }}>{staffMember}</span>
+                                    </p>
+                                </div>
+
+                                <form onSubmit={handleSubmit}>
+                                    <div className="rating-box" style={{ marginBottom: '1.5rem' }}>
+                                        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text)', marginBottom: '1rem', textAlign: 'center' }}>How would you rate:</h3>
+                                        {settings.questions.slice(0, -1).map(q => (
+                                            <StarRating key={q.key} label={q.label} rating={ratings[q.key] || 0} onRatingChange={(v) => handleRatingChange(q.key, v)} />
+                                        ))}
+                                    </div>
+
+                                    {settings.questions.length > 0 && (
+                                        <div style={{ marginBottom: '1.5rem' }}>
+                                            <StarRating
+                                                label={settings.questions[settings.questions.length - 1].label}
+                                                rating={ratings[settings.questions[settings.questions.length - 1].key] || 0}
+                                                onRatingChange={(v) => handleRatingChange(settings.questions[settings.questions.length - 1].key, v)}
+                                                stacked={true}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div style={{ marginBottom: '1.5rem' }}>
+                                        <label className="label">Anything else you'd like to share?</label>
+                                        <textarea className="input textarea" value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Share your thoughts..." />
+                                    </div>
+
+                                    <button type="submit" className="btn-primary">Submit Feedback</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Google review prompt
+            if (currentView === 'googlePrompt') {
+                return (
+                    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                        <div className="card" style={{ maxWidth: '420px', width: '100%', textAlign: 'center' }}>
+                            <div className="success-icon">
+                                <svg width="40" height="40" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                            </div>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text)', marginBottom: '0.75rem' }}>Thank you!</h2>
+                            <p style={{ color: 'var(--muted)', marginBottom: '1.5rem' }}>We're thrilled you had a great experience with us.</p>
+                            <p style={{ color: 'var(--text)', fontWeight: '500', marginBottom: '1.5rem' }}>Would you share your feedback on Google? We'll copy your comments for you.</p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <button className="btn-secondary" onClick={() => handleGoogleReview(true)}>Yes, Post on Google</button>
+                                <button className="btn-ghost" onClick={() => handleGoogleReview(false)}>No, Thanks</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Thank you page
+            if (currentView === 'thankYou') {
+                return (
+                    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                        <div className="card" style={{ maxWidth: '420px', width: '100%', textAlign: 'center' }}>
+                            <div className="success-icon">
+                                <svg width="40" height="40" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                            </div>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--text)', marginBottom: '0.75rem' }}>Thank you!</h2>
+                            <p style={{ color: 'var(--muted)', marginBottom: '1.5rem' }}>If you'd like us to contact you about your feedback, please leave your details below.</p>
+
+                            {!contactSubmitted ? (
+                                <form onSubmit={handleContactSubmit} style={{ textAlign: 'left' }}>
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <label className="label">Name (optional)</label>
+                                        <input type="text" className="input" value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Your name" />
+                                    </div>
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <label className="label">Phone (optional)</label>
+                                        <input type="tel" className="input" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="Your phone number" />
+                                    </div>
+                                    <div style={{ marginBottom: '1.5rem' }}>
+                                        <label className="label">Email (optional)</label>
+                                        <input type="email" className="input" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="Your email address" />
+                                    </div>
+                                    <button type="submit" className="btn-primary">Submit Contact Details</button>
+                                </form>
+                            ) : (
+                                <div style={{ background: 'rgba(74, 222, 128, 0.1)', border: '1px solid rgba(74, 222, 128, 0.3)', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+                                    <p style={{ color: '#16a34a', fontWeight: '500' }}>Thank you! We'll be in touch soon.</p>
+                                </div>
+                            )}
+
+                            <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border)' }}>
+                                <button className="btn-ghost" onClick={resetForm}>Submit Another Review</button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return null;
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
